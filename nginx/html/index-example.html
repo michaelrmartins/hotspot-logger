@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Logs - Relatórios</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #e4e4e4;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 1px solid #333;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            color: #4fc3f7;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: #888;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 25px;
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-card h3 {
+            font-size: 2.5rem;
+            color: #4fc3f7;
+            margin-bottom: 10px;
+        }
+
+        .stat-card p {
+            color: #888;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section h2 {
+            color: #4fc3f7;
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .search-box input {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px 20px;
+            border-radius: 8px;
+            border: 1px solid #333;
+            background: rgba(0, 0, 0, 0.3);
+            color: #fff;
+            font-size: 1rem;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #4fc3f7;
+        }
+
+        .search-box button {
+            padding: 12px 30px;
+            border-radius: 8px;
+            border: none;
+            background: #4fc3f7;
+            color: #1a1a2e;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .search-box button:hover {
+            background: #29b6f6;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #333;
+        }
+
+        th {
+            background: rgba(79, 195, 247, 0.1);
+            color: #4fc3f7;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+
+        tr:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .pagination button {
+            padding: 10px 20px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            background: transparent;
+            color: #e4e4e4;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background: #4fc3f7;
+            color: #1a1a2e;
+            border-color: #4fc3f7;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination span {
+            padding: 10px 20px;
+            color: #888;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #888;
+        }
+
+        .error {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid #f44336;
+            padding: 15px;
+            border-radius: 8px;
+            color: #f44336;
+            text-align: center;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            background: rgba(79, 195, 247, 0.2);
+            color: #4fc3f7;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            table {
+                font-size: 0.9rem;
+            }
+            
+            th, td {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📊 Sistema de Logs</h1>
+            <p>Painel de Relatórios e Monitoramento</p>
+        </header>
+
+        <!-- Estatísticas -->
+        <div class="stats-grid" id="stats">
+            <div class="stat-card">
+                <h3 id="stat-total">-</h3>
+                <p>Total de Logs</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="stat-cpfs">-</h3>
+                <p>CPFs Únicos</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="stat-macs">-</h3>
+                <p>MACs Únicos</p>
+            </div>
+            <div class="stat-card">
+                <h3 id="stat-24h">-</h3>
+                <p>Últimas 24h</p>
+            </div>
+        </div>
+
+        <!-- Busca -->
+        <div class="section">
+            <h2>🔍 Buscar Logs</h2>
+            <div class="search-box">
+                <input type="text" id="search-cpf" placeholder="Buscar por CPF...">
+                <input type="text" id="search-mac" placeholder="Buscar por MAC Address...">
+                <button onclick="searchLogs()">Buscar</button>
+                <button onclick="clearSearch()" style="background: #666;">Limpar</button>
+            </div>
+        </div>
+
+        <!-- Tabela de Logs -->
+        <div class="section">
+            <h2>📋 Registros de Logs</h2>
+            <div id="logs-container">
+                <div class="loading">Carregando dados...</div>
+            </div>
+            <div class="pagination" id="pagination"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = '/api';
+        let currentPage = 1;
+        const limit = 20;
+
+        // Carregar estatísticas
+        async function loadStats() {
+            try {
+                const response = await fetch(`${API_BASE}/logs/stats`);
+                const data = await response.json();
+                
+                document.getElementById('stat-total').textContent = formatNumber(data.total_logs);
+                document.getElementById('stat-cpfs').textContent = formatNumber(data.cpfs_unicos);
+                document.getElementById('stat-macs').textContent = formatNumber(data.macs_unicos);
+                document.getElementById('stat-24h').textContent = formatNumber(data.logs_ultimas_24h);
+            } catch (error) {
+                console.error('Erro ao carregar estatísticas:', error);
+            }
+        }
+
+        // Carregar logs
+        async function loadLogs(page = 1) {
+            currentPage = page;
+            const container = document.getElementById('logs-container');
+            container.innerHTML = '<div class="loading">Carregando...</div>';
+
+            try {
+                const response = await fetch(`${API_BASE}/logs?page=${page}&limit=${limit}`);
+                const data = await response.json();
+                
+                renderLogsTable(data.data);
+                renderPagination(data.pagination);
+            } catch (error) {
+                container.innerHTML = '<div class="error">Erro ao carregar logs. Verifique sua conexão.</div>';
+            }
+        }
+
+        // Buscar logs
+        async function searchLogs() {
+            const cpf = document.getElementById('search-cpf').value.trim();
+            const mac = document.getElementById('search-mac').value.trim();
+
+            if (!cpf && !mac) {
+                loadLogs(1);
+                return;
+            }
+
+            const container = document.getElementById('logs-container');
+            container.innerHTML = '<div class="loading">Buscando...</div>';
+
+            try {
+                const params = new URLSearchParams();
+                if (cpf) params.append('cpf', cpf);
+                if (mac) params.append('mac', mac);
+
+                const response = await fetch(`${API_BASE}/logs/search?${params}`);
+                const data = await response.json();
+                
+                renderLogsTable(data.data);
+                document.getElementById('pagination').innerHTML = 
+                    `<span>Encontrados: ${data.count} registros</span>`;
+            } catch (error) {
+                container.innerHTML = '<div class="error">Erro na busca.</div>';
+            }
+        }
+
+        // Limpar busca
+        function clearSearch() {
+            document.getElementById('search-cpf').value = '';
+            document.getElementById('search-mac').value = '';
+            loadLogs(1);
+        }
+
+        // Renderizar tabela
+        function renderLogsTable(logs) {
+            const container = document.getElementById('logs-container');
+            
+            if (!logs || logs.length === 0) {
+                container.innerHTML = '<div class="loading">Nenhum registro encontrado.</div>';
+                return;
+            }
+
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>CPF</th>
+                            <th>MAC Address</th>
+                            <th>Horário</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            logs.forEach(log => {
+                html += `
+                    <tr>
+                        <td><span class="badge">#${log.id}</span></td>
+                        <td>${formatCPF(log.cpf)}</td>
+                        <td><code>${log.mac_address}</code></td>
+                        <td>${formatDate(log.horario)}</td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
+        }
+
+        // Renderizar paginação
+        function renderPagination(pagination) {
+            const container = document.getElementById('pagination');
+            const { page, totalPages, total } = pagination;
+
+            let html = `
+                <button onclick="loadLogs(${page - 1})" ${page <= 1 ? 'disabled' : ''}>
+                    ← Anterior
+                </button>
+                <span>Página ${page} de ${totalPages} (${total} registros)</span>
+                <button onclick="loadLogs(${page + 1})" ${page >= totalPages ? 'disabled' : ''}>
+                    Próxima →
+                </button>
+            `;
+
+            container.innerHTML = html;
+        }
+
+        // Formatar número
+        function formatNumber(num) {
+            return new Intl.NumberFormat('pt-BR').format(num || 0);
+        }
+
+        // Formatar CPF
+        function formatCPF(cpf) {
+            if (!cpf) return '-';
+            const digits = cpf.replace(/\D/g, '');
+            if (digits.length === 11) {
+                return `${digits.slice(0,3)}.${digits.slice(3,6)}.${digits.slice(6,9)}-${digits.slice(9)}`;
+            }
+            return cpf;
+        }
+
+        // Formatar data
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            return new Intl.DateTimeFormat('pt-BR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            }).format(date);
+        }
+
+        // Enter para buscar
+        document.getElementById('search-cpf').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') searchLogs();
+        });
+        document.getElementById('search-mac').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') searchLogs();
+        });
+
+        // Inicializar
+        loadStats();
+        loadLogs(1);
+
+        // Atualizar a cada 30 segundos
+        setInterval(() => {
+            loadStats();
+        }, 30000);
+    </script>
+</body>
+</html>

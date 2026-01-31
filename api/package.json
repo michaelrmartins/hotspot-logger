@@ -1,0 +1,17 @@
+{
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "pg": "^8.18.0"
+  },
+  "name": "hotspot-logger",
+  "description": "Sistema completo para registro e visualização de logs contendo CPF, MAC Address e horário.",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
