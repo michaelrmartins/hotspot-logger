@@ -5,12 +5,17 @@
     "express": "^5.2.1",
     "pg": "^8.18.0"
   },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^6.3.4"
+  },
   "name": "hotspot-logger",
   "description": "Sistema completo para registro e visualização de logs contendo CPF, MAC Address e horário.",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "test": "jest --coverage --detectOpenHandles --forceExit"
   },
   "author": "",
   "license": "ISC"
