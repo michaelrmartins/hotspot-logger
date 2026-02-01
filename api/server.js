@@ -190,10 +190,12 @@ app.get('/logs/search', async (req, res) => {
   }
 });
 
-// Iniciar servidor
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`API rodando na porta ${PORT}`);
-});
+// Iniciar servidor apenas se executado diretamente
+if (require.main === module) {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`API rodando na porta ${PORT}`);
+  });
+}
 
 // Graceful shutdown
 process.on('SIGTERM', async () => {
@@ -201,3 +203,6 @@ process.on('SIGTERM', async () => {
   await pool.end();
   process.exit(0);
 });
+
+// Exportar para testes
+module.exports = { app, pool, validarCPF, validarMacAddress };
