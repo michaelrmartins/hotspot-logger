@@ -148,14 +148,14 @@ app.get('/logs/stats', async (req, res) => {
   }
 });
 
-// GET /logs/search - Buscar por CPF ou MAC
+// GET /logs/search - Buscar por CPF, MAC ou DATA
 app.get('/logs/search', async (req, res) => {
   try {
-    const { cpf, mac } = req.query;
+    const { cpf, mac, date } = req.query;
 
-    if (!cpf && !mac) {
+    if (!cpf && !mac && !date) {
       return res.status(400).json({
-        error: 'Informe pelo menos um parâmetro: cpf ou mac'
+        error: 'Informe pelo menos um parâmetro: cpf, mac ou date'
       });
     }
 
@@ -172,6 +172,13 @@ app.get('/logs/search', async (req, res) => {
     if (mac) {
       query += ` AND mac_address LIKE $${paramIndex}`;
       params.push(`%${mac.toUpperCase()}%`);
+      paramIndex++;
+    }
+
+    if (date) {
+      // Postgres: Cast horario para DATE para comparar apenas o dia (YYYY-MM-DD)
+      query += ` AND DATE(horario) = $${paramIndex}`;
+      params.push(date);
       paramIndex++;
     }
 
